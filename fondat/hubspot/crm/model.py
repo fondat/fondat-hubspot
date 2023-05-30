@@ -1,8 +1,9 @@
 """..."""
 
+from datetime import datetime
 from fondat.data import datacls
 from typing import Literal
-from datetime import datetime
+
 
 PropertyType = Literal[
     "bool",

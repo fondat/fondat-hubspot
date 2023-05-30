@@ -4,7 +4,7 @@ from datetime import datetime
 from fondat.data import datacls
 from fondat.hubspot.client import get_client
 from fondat.hubspot.crm.model import Property
-from fondat.resource import resource, operation
+from fondat.resource import operation, resource
 from typing import TypedDict
 
 

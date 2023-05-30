@@ -5,18 +5,17 @@ import asyncio
 import fondat.error
 import logging
 
-from contextvars import ContextVar
 from collections import deque
 from collections.abc import AsyncIterator, Callable, Coroutine
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from fondat.codec import JSONCodec, StringCodec
 from fondat.error import InternalServerError
 from fondat.pagination import Cursor, Page
 from fondat.stream import Stream
+from json import dumps
 from typing import Any, Literal, TypeVar
 
-
-from json import dumps
 
 _logger = logging.getLogger(__name__)
 
@@ -186,7 +185,9 @@ class Client:
             params["limit"] = str(limit)
         if cursor:
             params["after"] = cursor.encode()
-        async with get_client().http_request(method=method, path=path, params=params, json=json) as response:
+        async with get_client().http_request(
+            method=method, path=path, params=params, json=json
+        ) as response:
             json = await response.json()
         try:
             cursor = json["paging"]["next"]["after"].encode()

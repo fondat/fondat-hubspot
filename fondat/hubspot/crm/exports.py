@@ -2,7 +2,7 @@
 
 import asyncio
 
-from collections.abc import Iterable, AsyncIterator
+from collections.abc import AsyncIterator, Iterable
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime
 from fondat.codec import Codec, DecodeError, StringCodec
@@ -11,8 +11,8 @@ from fondat.data import datacls
 from fondat.file import FileResource
 from fondat.http import AsBody
 from fondat.hubspot.client import HTTPResponseStream, get_client
-from fondat.hubspot.crm.properties import properties_resource, Property, python_type
 from fondat.hubspot.crm.model import Filter
+from fondat.hubspot.crm.properties import Property, properties_resource, python_type
 from fondat.resource import mutation, query, resource
 from fondat.stream import IOBaseStream
 from fondat.validation import validate_arguments

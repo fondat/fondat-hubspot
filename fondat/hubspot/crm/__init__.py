@@ -6,7 +6,6 @@ from .owners import owners_resource
 from .pipelines import pipelines_resource
 from .properties import properties_resource
 from .schemas import schemas_resource
-
 from fondat.resource import resource
 
 

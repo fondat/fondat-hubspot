@@ -7,7 +7,7 @@ from fondat.codec import JSONCodec
 from fondat.data import datacls
 from fondat.pagination import Cursor, Page
 from fondat.resource import operation, resource
-from fondat.validation import MinValue, MaxValue
+from fondat.validation import MaxValue, MinValue
 from typing import Annotated
 
 

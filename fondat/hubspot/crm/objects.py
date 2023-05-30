@@ -8,7 +8,6 @@ from fondat.hubspot.client import get_client
 from fondat.hubspot.crm.model import Filter, Property
 from fondat.pagination import Cursor, Page
 from fondat.resource import operation, query, resource
-from datetime import datetime
 from typing import Any
 
 
@@ -156,7 +155,7 @@ class ObjectTypeResource:
                 propertiesWithHistory=[p.name for p in propertiesWithHistory or ()] or None,
                 associations=associations,
                 archived=archived,
-            )
+            ),
         )
         codecs = _codecs(properties) | _codecs(propertiesWithHistory)
         for item in page.items:
