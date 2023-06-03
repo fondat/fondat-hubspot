@@ -6,12 +6,13 @@ from fondat.error import UnauthorizedError
 from urllib.parse import urlencode
 
 
+_AUTH_ENDPOINT = "https://app.hubspot.com/oauth/authorize"
 _TOKEN_ENDPOINT = "https://api.hubapi.com/oauth/v1/token"
 
 
 def generate_oauth_authorization_url(
     *,
-    endpoint: str = "https://app.hubspot.com/oauth/authorize",
+    endpoint: str = _AUTH_ENDPOINT,
     client_id: str,
     scopes: list[str],
     redirect_uri: str,
@@ -82,6 +83,21 @@ async def request_oauth_refresh_token(
         raise UnauthorizedError(json["error"])
 
 
+def access_token_authenticator(*, access_token: str):
+    """
+    Return a coroutine that returns a fixed access token. Access token authentication is
+    used in HubSpot for private applications.
+
+    Parameters:
+    • access_token: access token to return
+    """
+
+    async def authenticate(session: aiohttp.ClientSession) -> str:
+        return access_token
+
+    return authenticate
+
+
 def refresh_token_authenticator(
     *,
     endpoint: str = _TOKEN_ENDPOINT,
@@ -118,20 +134,5 @@ def refresh_token_authenticator(
             if response.status == 200:
                 return json["access_token"]
             raise UnauthorizedError(json["error"])
-
-    return authenticate
-
-
-def access_token_authenticator(*, access_token: str):
-    """
-    Return a coroutine that returns a fixed access token. Access token authentication is
-    used in HubSpot for private applications.
-
-    Parameters:
-    • access_token: access token to return
-    """
-
-    async def authenticate(session: aiohttp.ClientSession) -> str:
-        return access_token
 
     return authenticate

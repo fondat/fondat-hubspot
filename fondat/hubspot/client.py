@@ -154,7 +154,6 @@ class Client:
             json=JSONCodec.get(Any).encode(request_body) if request_body else None,
         ) as response:
             if response_type:
-                print(f"{await response.json()=}")
                 return JSONCodec.get(response_type).decode(await response.json())
 
     async def paged_request(
@@ -168,14 +167,17 @@ class Client:
         cursor: Cursor = None,
     ) -> Page[T]:
         """
-        Get a paginated list of items via the HubSpot list API.
+        Get a paginated list of items via the HubSpot v3+ API.
 
         Parameters:
         • path: request path, relative to endpoint URL
         • item_type: type to decode for items in JSON response
         • params: extra parameters to include in query string
-        • limit: TODO
-        • cursor: TODO
+        • limit: maximum number of items to return in page
+        • cursor: cursor to fetch next page
+
+        This translates between pagination in Fondat `cursor` and HubSpot `after` in
+        HubSpot v3+ APIs.
         """
         codec = JSONCodec.get(list[item_type])
         params = {

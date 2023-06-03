@@ -8,11 +8,12 @@ from fondat.hubspot.client import get_client
 from fondat.hubspot.crm.model import Filter, Property
 from fondat.pagination import Cursor, Page
 from fondat.resource import operation, query, resource
-from typing import Any
+from fondat.validation import MaxValue, MinValue
+from typing import Annotated, Any
 
 
 @datacls
-class PropertyUpdate:
+class UpdatedProperty:
     value: Any
     timestamp: datetime
     sourceType: str
@@ -23,7 +24,7 @@ class PropertyUpdate:
 class Object:
     id: str
     properties: dict[str, Any]
-    propertiesWithHistory: dict[str, list[PropertyUpdate]] | None
+    propertiesWithHistory: dict[str, list[UpdatedProperty]] | None
     createdAt: datetime
     updatedAt: datetime
     archived: bool
@@ -80,7 +81,7 @@ def _codecs(properties: list[Property] | None) -> dict[str, Codec[Any, Any]]:
 
 
 def _decode_object(object: Object, codecs: dict[str, Codec[Any, Any]]) -> None:
-    """Decode properties and propertiesWithHistory values on best effort basis."""
+    """Decode properties and propertiesWithHistory values on best-effort basis."""
     for key in object.properties or ():
         if codec := codecs.get(key):
             with suppress(DecodeError):
@@ -96,9 +97,9 @@ def _decode_object(object: Object, codecs: dict[str, Codec[Any, Any]]) -> None:
 class ObjectResource:
     """..."""
 
-    def __init__(self, object_type: str, id: str):
-        self.object_type = object_type
-        self.id = id
+    def __init__(self, objectType: str, objectId: str):
+        self.objectType = objectType
+        self.objectId = objectId
 
     @operation
     async def get(
@@ -110,7 +111,7 @@ class ObjectResource:
     ) -> Object:
         item = await get_client().typed_request(
             method="GET",
-            path=f"/crm/v3/objects/{self.object_type}/{self.id}",
+            path=f"/crm/v3/objects/{self.objectType}/{self.objectId}",
             response_type=Object,
             params=dict(
                 properties=[p.name for p in properties or ()] or None,
@@ -127,11 +128,11 @@ class ObjectResource:
 class ObjectTypeResource:
     """..."""
 
-    def __init__(self, object_type: str):
-        self.object_type = object_type
+    def __init__(self, objectType: str):
+        self.objectType = objectType
 
-    def __getitem__(self, id: str) -> ObjectResource:
-        return ObjectResource(self.object_type, id)
+    def __getitem__(self, objectId: str) -> ObjectResource:
+        return ObjectResource(self.objectType, objectId)
 
     @operation
     async def get(
@@ -140,13 +141,13 @@ class ObjectTypeResource:
         propertiesWithHistory: list[Property] | None = None,
         associations: list[str] | None = None,
         archived: bool = False,
-        limit: int | None = None,
+        limit: Annotated[int, MinValue(1), MaxValue(100)] = 100,
         cursor: Cursor = None,
     ) -> Page[Object]:
         """Return a paginated list of objects."""
         page = await get_client().paged_request(
             method="GET",
-            path=f"/crm/v3/objects/{self.object_type}",
+            path=f"/crm/v3/objects/{self.objectType}",
             item_type=Object,
             limit=limit,
             cursor=cursor,
@@ -167,8 +168,8 @@ class ObjectTypeResource:
 class ObjectsResource:
     """..."""
 
-    def __getitem__(self, object_type: str) -> ObjectTypeResource:
-        return ObjectTypeResource(object_type)
+    def __getitem__(self, objectType: str) -> ObjectTypeResource:
+        return ObjectTypeResource(objectType)
 
 
 objects_resource = ObjectsResource()

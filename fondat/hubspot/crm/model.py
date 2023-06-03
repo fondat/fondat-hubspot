@@ -60,6 +60,25 @@ class Property:
     formField: bool
     calculationFormula: str | None
 
+    @property
+    def python_type(self):
+        match self.type:
+            case "bool":
+                return bool | None
+            case "enumeration":
+                if self.fieldType == "checkbox":
+                    return set[str] | None
+                return str | None
+            case "date":
+                return date | None
+            case "datetime":
+                return datetime | None
+            case "string" | "phone_number":
+                return str | None
+            case "number":
+                return int | float | None
+        raise RuntimeError(f"unknown property type: {self.type}")
+
 
 @datacls
 class Filter:

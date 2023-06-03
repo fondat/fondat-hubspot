@@ -1,5 +1,4 @@
-"""..."""
-
+"""HubSpot CRM properties resources module."""
 
 from datetime import date, datetime
 from fondat.codec import JSONCodec
@@ -14,16 +13,16 @@ from typing import Any, Literal, TypedDict
 class PropertyResource:
     """..."""
 
-    def __init__(self, object_type: str, property_name: str):
-        self.object_type = object_type
-        self.property_name = property_name
+    def __init__(self, objectType: str, propertyName: str):
+        self.objectType = objectType
+        self.propertyName = propertyName
 
     @operation
     async def get(self) -> Property:
         """Read property."""
         return await get_client().typed_request(
             method="GET",
-            path=f"/crm/v3/properties/{self.object_type}/{self.property_name}",
+            path=f"/crm/v3/properties/{self.objectType}/{self.propertyName}",
             response_type=Property,
         )
 
@@ -32,48 +31,28 @@ class PropertyResource:
 class ObjectResource:
     """..."""
 
-    def __init__(self, object_type: str):
-        self.object_type = object_type
+    def __init__(self, objectType: str):
+        self.objectType = objectType
 
     async def get(self) -> list[Property]:
         """Read all properties for the object."""
         response = await get_client().typed_request(
             method="GET",
-            path=f"/crm/v3/properties/{self.object_type}",
+            path=f"/crm/v3/properties/{self.objectType}",
             response_type=TypedDict("TD", {"results": list[Property]}),
         )
         return response["results"]
 
-    def __getitem__(self, property_name) -> PropertyResource:
-        return PropertyResource(self.object_type, property_name)
+    def __getitem__(self, propertyName: str) -> PropertyResource:
+        return PropertyResource(self.objectType, propertyName)
 
 
 @resource
 class PropertiesResource:
     """..."""
 
-    def __getitem__(self, object_type: str) -> ObjectResource:
-        return ObjectResource(object_type)
+    def __getitem__(self, objectType: str) -> ObjectResource:
+        return ObjectResource(objectType)
 
 
 properties_resource = PropertiesResource()
-
-
-def python_type(property: Property):
-    """Return the Python type for the specified property."""
-    match property.type:
-        case "bool":
-            return bool | None
-        case "enumeration":
-            if property.fieldType == "checkbox":
-                return set[str] | None
-            return str | None
-        case "date":
-            return date | None
-        case "datetime":
-            return datetime | None
-        case "string" | "phone_number":
-            return str | None
-        case "number":
-            return int | float | None
-    raise ValueError(f"unknown property type: {property.type}")

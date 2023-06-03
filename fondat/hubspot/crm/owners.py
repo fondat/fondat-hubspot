@@ -1,10 +1,9 @@
 """..."""
 
-import fondat.hubspot.client as client
-
 from datetime import datetime
 from fondat.codec import JSONCodec
 from fondat.data import datacls
+from fondat.hubspot.client import get_client
 from fondat.pagination import Cursor, Page
 from fondat.resource import operation, resource
 from fondat.validation import MaxValue, MinValue
@@ -33,15 +32,18 @@ class Owner:
 
 @resource
 class OwnerResource:
-    def __init__(self, id: str):
-        self.id = id
+    """..."""
+
+    def __init__(self, ownerId: str):
+        self.ownerId = ownerId
 
     @operation
     async def get(self) -> Owner:
-        codec = JSONCodec.get(Owner)
-        async with client.get().request("GET", f"/crm/v3/owners/{self.id}") as response:
-            json = await response.json()
-        return codec.decode(json)
+        return await get_client().typed_request(
+            method="GET",
+            path=f"/crm/v3/owners/{self.ownerId}",
+            response_type=Owner,
+        )
 
 
 @resource
@@ -54,15 +56,16 @@ class OwnersResource:
         limit: Annotated[int, MinValue(1), MaxValue(100)] = 100,
         cursor: Cursor = None,
     ) -> Page[Owner]:
-        return await client.get_page(
+        return await get_client().paged_request(
+            method="GET",
             path=f"/crm/v3/owners",
             item_type=Owner,
             limit=limit,
             cursor=cursor,
         )
 
-    def __getitem__(self, id: str) -> OwnerResource:
-        pass
+    def __getitem__(self, ownerId: str) -> OwnerResource:
+        return OwnerResource(ownerId)
 
 
 owners_resource = OwnersResource()

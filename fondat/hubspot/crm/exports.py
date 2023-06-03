@@ -11,8 +11,8 @@ from fondat.data import datacls
 from fondat.file import FileResource
 from fondat.http import AsBody
 from fondat.hubspot.client import HTTPResponseStream, get_client
-from fondat.hubspot.crm.model import Filter
-from fondat.hubspot.crm.properties import Property, properties_resource, python_type
+from fondat.hubspot.crm.model import Filter, Property
+from fondat.hubspot.crm.properties import properties_resource
 from fondat.resource import mutation, query, resource
 from fondat.stream import IOBaseStream
 from fondat.validation import validate_arguments
@@ -60,7 +60,7 @@ class ExportResponse:
 
 
 @datacls
-class TaskError:
+class ExportTaskError:
     """..."""
 
     @datacls
@@ -87,13 +87,13 @@ class TaskError:
 
 
 @datacls
-class TaskStatus:
+class ExportTaskStatus:
     """..."""
 
     status: Literal["COMPLETE", "PENDING", "PROCESSING", "CANCELED"]
     result: str | None
     numErrors: int | None
-    errors: list[TaskError] | None
+    errors: list[ExportTaskError] | None
     requestedAt: datetime | None
     startedAt: datetime
     completedAt: datetime
@@ -101,19 +101,19 @@ class TaskStatus:
 
 
 @resource
-class TaskResource:
+class ExportTaskResource:
     """..."""
 
-    def __init__(self, id: str):
-        self.id = id
+    def __init__(self, taskId: str):
+        self.taskId = taskId
 
     @query
-    async def status(self) -> TaskStatus:
+    async def status(self) -> ExportTaskStatus:
         """Retrieve asynchronous export task status."""
         return await get_client().typed_request(
             method="GET",
-            path=f"/crm/v3/exports/export/async/tasks/{self.id}/status",
-            response_type=TaskStatus,
+            path=f"/crm/v3/exports/export/async/tasks/{self.taskId}/status",
+            response_type=ExportTaskStatus,
         )
 
 
@@ -185,8 +185,8 @@ class ExportsResource:
             response_type=ExportResponse,
         )
 
-    def __getitem__(self, id: str) -> TaskResource:
-        return TaskResource(id)
+    def __getitem__(self, taskId: str) -> ExportTaskResource:
+        return ExportTaskResource(taskId)
 
 
 exports_resource = ExportsResource()
@@ -238,7 +238,7 @@ class _BestEffortCodec(Codec[str, Any]):
     """Decodes on best-effort basis, reverting to undecoded string on decode error."""
 
     def __init__(self, property: Property):
-        self.codec = StringCodec.get(python_type(property))
+        self.codec = StringCodec.get(property.python_type)
 
     def decode(self, value: str) -> Any:
         try:
@@ -308,23 +308,22 @@ async def export(
     sorts: list[Sort] | None = None,
     query: str | None = None,
     timeout: int | None = None,
-    storage: Path = None,
 ) -> AsyncIterator[dict[str, Any]]:
     """
     Perform a bulk export of objects from HubSpot, decoding properties into their associated
     Python types on a best-effort basis.
 
-    This function uses the CSV export endpoint in HubSpot, which is intended to produce a
-    human-readable spreadsheet, not necessarily a precise machine-readable raw export of data.
-    This results in some limitations:
+    This function uses the export endpoint in HubSpot, which is intended to produce a
+    human-readable spreadsheet, not a precise machine-readable raw export of data. This results
+    in some limitations:
 
-    1. CSV headers contain non-unique labels instead of unique names. Some properties share the
+    1. Headers contain non-unique labels instead of unique names. Some properties share the
     same label, making them ambiguous in the response. Requesting an export with ambiguously
     labeled properties will raise an error.
 
-    2. CSV values may not conform with their property definitions. Examples: a) some ID
+    2. Values may not conform with their property definitions. Examples: a) some ID
     properties are returned as names, b) some checkbox enumerations encode arbitrary lists of
-    values in a single property. If a property cannot be decoded, it will be returned as an
+    values in a single property. If a property cannot be decoded, it will be left as an
     undecoded string.
 
     Parameters:
@@ -337,8 +336,8 @@ async def export(
     • query: string to search object values for
     • timeout: seconds to wait for query job to complete  [unlimited]
 
-    This function downloads the export to a temporary file, as it can be a zip file, which
-    requires extraction.
+    This function downloads the export payload to a temporary file, as it can be a zip archive
+    that requires extraction.
     """
 
     keys = {}
