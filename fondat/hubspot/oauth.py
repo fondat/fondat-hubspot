@@ -10,7 +10,7 @@ _AUTH_ENDPOINT = "https://app.hubspot.com/oauth/authorize"
 _TOKEN_ENDPOINT = "https://api.hubapi.com/oauth/v1/token"
 
 
-def generate_oauth_authorization_url(
+def generate_authorization_url(
     *,
     endpoint: str = _AUTH_ENDPOINT,
     client_id: str,
@@ -46,7 +46,7 @@ def generate_oauth_authorization_url(
     )
 
 
-async def request_oauth_refresh_token(
+async def request_refresh_token(
     *,
     session: aiohttp.ClientSession,
     endpoint: str = _TOKEN_ENDPOINT,

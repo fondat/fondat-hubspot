@@ -4,8 +4,8 @@ import os
 import pytest
 
 from contextlib import asynccontextmanager
-from fondat.hubspot.auth import access_token_authenticator
 from fondat.hubspot.client import Client
+from fondat.hubspot.oauth import access_token_authenticator
 
 
 @asynccontextmanager  # uses contexts; clashes with fixtures
