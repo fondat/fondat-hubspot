@@ -139,7 +139,7 @@ class ObjectTypeResource:
         self,
         properties: list[Property],
         propertiesWithHistory: list[Property] | None = None,
-        associations: list[str] | None = None,
+        associations: set[str] | None = None,
         archived: bool = False,
         limit: Annotated[int, MinValue(1), MaxValue(100)] = 100,
         cursor: Cursor = None,
