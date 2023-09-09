@@ -186,7 +186,7 @@ class Client:
         if limit:
             params["limit"] = str(limit)
         if cursor:
-            params["after"] = cursor.encode()
+            params["after"] = cursor.decode()
         async with get_client().http_request(
             method=method, path=path, params=params, json=json
         ) as response:
