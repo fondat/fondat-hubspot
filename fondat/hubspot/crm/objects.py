@@ -16,8 +16,8 @@ from typing import Annotated, Any
 class UpdatedProperty:
     value: Any
     timestamp: datetime
-    sourceType: str
-    sourceId: str
+    sourceType: str | None
+    sourceId: str | None
 
 
 @datacls
