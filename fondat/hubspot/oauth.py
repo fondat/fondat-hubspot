@@ -68,7 +68,7 @@ async def request_refresh_token(
     """
 
     async with await session.post(
-        url=endpoint.rstrip("/") + "/services/oauth2/token",
+        url=endpoint.rstrip("/"),
         data={
             "grant_type": "authorization_code",
             "client_id": client_id,
