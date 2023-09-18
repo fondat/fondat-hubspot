@@ -1,8 +1,7 @@
 """..."""
 
-from contextlib import suppress
 from datetime import date, datetime
-from fondat.codec import Codec, DecodeError, JSONCodec
+from fondat.codec import Codec, DecodeError, StringCodec
 from fondat.data import datacls
 from fondat.hubspot.client import get_client
 from fondat.hubspot.crm.model import Filter, Property
@@ -59,21 +58,23 @@ def _codecs(properties: list[Property] | None) -> dict[str, Codec[Any, Any]]:
     for property in properties or {}:
         match property.type:
             case "bool":
-                codec = JSONCodec.get(bool | None)
+                codec = StringCodec.get(bool)
             case "date":
-                codec = JSONCodec.get(date | None)
+                codec = StringCodec.get(date)
             case "datetime":
-                codec = JSONCodec.get(datetime | None)
+                codec = StringCodec.get(datetime)
             case "string" | "phone_number":
-                codec = JSONCodec.get(str | None)
+                codec = StringCodec.get(str)
             case "number":
-                codec = JSONCodec.get(int | float | None)
+                codec = StringCodec.get(int | float)
             case "enumeration":
                 match property.fieldType:
                     case "checkbox":
                         codec = _multi_value_codec
+                    case "booleancheckbox":
+                        codec = StringCodec.get(bool)
                     case _:
-                        codec = JSONCodec.get(str | None)
+                        codec = StringCodec.get(str)
             case _:
                 raise ValueError(f"unexpected property.type: {property.type}")
         result[property.name] = codec
@@ -81,16 +82,24 @@ def _codecs(properties: list[Property] | None) -> dict[str, Codec[Any, Any]]:
 
 
 def _decode_object(object: Object, codecs: dict[str, Codec[Any, Any]]) -> None:
-    """Decode properties and propertiesWithHistory values on best-effort basis."""
-    for key in object.properties or ():
-        if codec := codecs.get(key):
-            with suppress(DecodeError):
-                object.properties[key] = codec.decode(object.properties[key])
-    for key in object.propertiesWithHistory or ():
-        if codec := codecs.get(key):
-            for update in object.propertiesWithHistory[key]:
-                with suppress(DecodeError):
-                    update.value = codec.decode(update.value)
+    """Decode properties and propertiesWithHistory values in place."""
+
+    object.properties = {k: v for k, v in (object.properties or {}).items() if k in codecs}
+    for key, value in object.properties.items():
+        if value == "":
+            object.properties[key] = None
+        elif value is not None:
+            object.properties[key] = codecs[key].decode(value)
+
+    object.propertiesWithHistory = {
+        k: v for k, v in (object.propertiesWithHistory or {}).items() if k in codecs
+    }
+    for key, updates in object.propertiesWithHistory.items():
+        for update in updates:
+            if update.value == "":
+                update.value = None
+            elif update.value is not None:
+                update.value = codecs[key].decode(update.value)
 
 
 @resource
