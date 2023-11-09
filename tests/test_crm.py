@@ -5,11 +5,10 @@ from fondat.hubspot.crm import crm_resource as crm
 from fondat.hubspot.crm.exports import export
 
 
-async def test_get_object_pages():
+async def test_get_objects():
     async with client_context():
-        object_type = "companies"
-        properties = await crm.properties[object_type].get()
-        page = await crm.objects[object_type].get(limit=1, properties=properties)
+        properties = await crm.properties["deals"].get()
+        page = await crm.objects["deals"].get(properties=properties, associations={"companies"})
 
 
 async def test_owners():
@@ -34,8 +33,17 @@ async def test_pipelines():
 
 async def test_properties():
     async with client_context():
-        properties = await crm.properties["companies"].get()
+        properties = await crm.properties["line_items"].get()
         assert len(properties)
+
+
+async def test_get_objects_with_history():
+    async with client_context():
+        properties = await crm.properties["deals"].get()
+        select = [p for p in properties if p.name == "dealstage"]
+        page = await crm.objects["deals"].get(
+            properties=select, propertiesWithHistory=select, limit=50
+        )
 
 
 async def test_schemas():
