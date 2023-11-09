@@ -66,7 +66,7 @@ class Property:
             case "bool":
                 return bool | None
             case "enumeration":
-                if self.fieldType == "checkbox":
+                if self.fieldType in {"checkbox", "radio"}:
                     return set[str] | None
                 return str | None
             case "date":
