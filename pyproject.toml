@@ -8,7 +8,7 @@ target-version = ['py310']
 
 [tool.poetry]
 name = "fondat-hubspot"
-version = "4.1b2"
+version = "4.1.0"
 description = "Fondat package for HubSpot."
 readme = "README.md"
 authors = ["fondat-hubspot authors"]
@@ -17,7 +17,7 @@ documentation = "https://github.com/fondat/fondat-hubspot/wiki"
 license = "MIT"
 keywords = ["asgi", "framework", "resource", "openapi"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
