@@ -13,6 +13,7 @@ PropertyType = Literal[
     "string",
     "number",
     "phone_number",
+    "object_coordinates",
 ]
 
 
