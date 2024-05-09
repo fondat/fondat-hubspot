@@ -93,8 +93,8 @@ class Client:
         while True:
             if not self.token:
                 _logger.debug("acquiring authentication token")
-                self.access_token = await self.authenticator(self.session)
-            headers["Authorization"] = f"Bearer {self.access_token}"
+                self.token = await self.authenticator(self.session)
+            headers["Authorization"] = f"Bearer {self.token}"
             url = f"{self.endpoint}{path}"
             async with self.session.request(
                 method=method,
